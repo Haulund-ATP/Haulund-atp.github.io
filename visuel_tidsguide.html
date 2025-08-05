@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>Tidsudtryk - Hvad betyder "lige om lidt"? - Og hvad skal jeg vælge?</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px;
+    }
+    h1 {
+      text-align: center;
+    }
+    canvas {
+      max-height: 1200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hvornår betyder det egentlig \"lige om lidt\"?</h1>
+  <p style="text-align: center;">Scroll og zoom for at sammenligne tidsudtryk</p>
+
+  <canvas id="timeChart" height="1500"></canvas>
+
+  <script>
+    const labels = [
+      "Lige nu", "Med det samme", "Et sekund", "Øjeblik", "Et lille øjeblik", "Et kort øjeblik",
+      "2 minutter", "Lige om lidt", "5 minutter", "Straks", "Lige om straks", "Om et øjeblik",
+      "Snart", "Om lidt", "Jeg er der om lidt", "Jeg skal bare lige",
+      "Om få minutter", "På et tidspunkt", "Jeg kommer lige om lidt",
+      "ASAP", "Hurtigst muligt", "Snarest muligt", "Når jeg lige er færdig her",
+      "Når jeg har tid", "I løbet af formiddagen", "Når jeg lige når det",
+      "På et tidspunkt i dag", "Når jeg lige får ro", "Når jeg får tid",
+      "Inden dagen er omme", "I morgen måske", "Når det passer", "Når der er tid og ro"
+    ];
+
+    const maxTimes = [
+      5, 5, 2, 1, 1.5, 2,
+      2, 3, 5, 5, 5, 6,
+      8, 9, 10, 15,
+      15, 20, 20,
+      30, 30, 60, 15,
+      120, 240, 360,
+      720, 720, 1440,
+      1440, 2160, 4320, 4320
+    ];
+
+    const backgroundColors = maxTimes.map(t => {
+      if (t <= 5) return 'rgba(75, 192, 192, 0.6)';
+      if (t <= 30) return 'rgba(255, 206, 86, 0.6)';
+      if (t <= 240) return 'rgba(255, 159, 64, 0.6)';
+      return 'rgba(255, 99, 132, 0.6)';
+    });
+
+    const ctx = document.getElementById('timeChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Maksimumtid (i minutter)',
+          data: maxTimes,
+          backgroundColor: backgroundColors,
+          borderColor: 'rgba(0,0,0,0.1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Tid (minutter)'
+            },
+            ticks: {
+              beginAtZero: true
+            }
+          }
+        },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'y',
+              threshold: 5
+            },
+            zoom: {
+              wheel: {
+                enabled: true
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'y'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Tid: ${context.raw} minutter`;
+              }
+            }
+          },
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
