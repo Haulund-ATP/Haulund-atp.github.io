@@ -2,32 +2,115 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8">
-  <title>Book et møde med mig</title>
+  <title>Book møde med Thomas</title>
   <style>
-    html, body {
+    body {
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-    }
-    iframe {
-      width: 100%;
-      height: 100vh;
-      border: none;
+      background-color: #f4f4f4;
     }
     h1 {
       text-align: center;
-      margin-top: 1rem;
-      font-size: 1.5rem;
+      padding: 1rem;
+      background-color: #003366;
+      color: white;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      background: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 1rem;
+    }
+    .tab.active {
+      background: white;
+      border-top: 3px solid #003366;
+      font-weight: bold;
+    }
+    .content {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    iframe {
+      width: 100%;
+      border: none;
+      display: none;
+    }
+    iframe.active {
+      display: block;
     }
   </style>
 </head>
 <body>
-  <h1>Book et møde med mig</h1>
-  <iframe
-    src="https://outlook.office.com/bookwithme/user/b875dde3a4364350bd9ac3e8e09fe2cc@ATP.DK/meetingtype/qqowKQltmUqVLcmz7X_c8w2?anonymous&ismsaljsauthenabled&ep=mlink"
-    allowfullscreen
-    loading="lazy">
-  </iframe>
+  <h1>Book møde med Thomas</h1>
+  <div class="tabs">
+    <button class="tab" data-target="atp">ATP Kalender</button>
+    <button class="tab" data-target="privat">Privatkalender</button>
+    <button class="tab" data-target="timewinder">TimeWinder Kalender</button>
+  </div>
+  <div class="content">
+    <iframe id="atp" data-src="https://outlook.office.com/bookwithme/user/b875dde3a4364350bd9ac3e8e09fe2cc@ATP.DK/meetingtype/qqowKQltmUqVLcmz7X_c8w2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
+    <iframe id="privat" data-src="https://outlook.office.com/bookwithme/user/98f27b3160b9462abfb0c2396e0bf74b@haulund-aadorf.dk/meetingtype/ZyexHvU_A0iWB4GergEWZA2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
+    <iframe id="timewinder" data-src="https://outlook.office.com/bookwithme/user/c9c7d22b5db04dce86119ce2f35d1154@timewinder.dk/meetingtype/mWsCXZztV0iSSFJJCE_Frg2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const iframes = document.querySelectorAll('iframe');
+
+    function resizeIframe(iframe) {
+      try {
+        const contentHeight = iframe.contentWindow.document.body.scrollHeight;
+        iframe.style.height = contentHeight + 'px';
+      } catch (e) {
+        iframe.style.height = '1200px'; // fallback
+      }
+    }
+
+    function activateTab(tab, updateHash = true) {
+      tabs.forEach(t => t.classList.remove('active'));
+      iframes.forEach(iframe => iframe.classList.remove('active'));
+
+      tab.classList.add('active');
+      const targetId = tab.dataset.target;
+      const targetIframe = document.getElementById(targetId);
+      targetIframe.classList.add('active');
+
+      if (!targetIframe.src) {
+        targetIframe.src = targetIframe.dataset.src;
+        targetIframe.onload = () => resizeIframe(targetIframe);
+      } else {
+        resizeIframe(targetIframe);
+      }
+
+      if (updateHash) {
+        history.replaceState(null, null, `#${targetId}`);
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => activateTab(tab));
+    });
+
+    // Auto-activate tab based on hash or default to first tab
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.substring(1);
+      const tabToActivate = hash
+        ? document.querySelector(`.tab[data-target="${hash}"]`)
+        : tabs[0];
+
+      if (tabToActivate) {
+        activateTab(tabToActivate, false);
+      }
+    });
+  </script>
 </body>
 </html>
