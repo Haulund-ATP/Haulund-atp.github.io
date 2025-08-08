@@ -54,14 +54,14 @@
   <h1>Book møde med Thomas</h1>
   <div class="tabs">
     <button class="tab" data-target="atp">ATP Kalender</button>
-    <button class="tab" data-target="hkit">HK IT Tillidsrepræsentant</button> <!-- Flyttet op -->
+    <button class="tab" data-target="hkit">HK IT Tillidsrepræsentant</button>
     <button class="tab" data-target="privat">Privatkalender</button>
     <button class="tab" data-target="timewinder">TimeWinder Kalender</button>
   </div>
   <div class="content">
     <iframe id="atp" data-src="https://outlook.office.com/bookwithme/user/b875dde3a4364350bd9ac3e8e09fe2cc@ATP.DK/meetingtype/qqowKQltmUqVLcmz7X_c8w2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
     
-    <iframe id="hkit" data-src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"></iframe> <!-- Flyttet op -->
+    <iframe id="hkit" data-src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"></iframe>
 
     <iframe id="privat" data-src="https://outlook.office.com/bookwithme/user/98f27b3160b9462abfb0c2396e0bf74b@haulund-aadorf.dk/meetingtype/ZyexHvU_A0iWB4GergEWZA2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
     
@@ -77,7 +77,7 @@
         const contentHeight = iframe.contentWindow.document.body.scrollHeight;
         iframe.style.height = contentHeight + 'px';
       } catch (e) {
-        iframe.style.height = '1200px'; // fallback
+        iframe.style.height = '1200px'; // fallback for ikke-TR
       }
     }
 
@@ -92,9 +92,19 @@
 
       if (!targetIframe.src) {
         targetIframe.src = targetIframe.dataset.src;
-        targetIframe.onload = () => resizeIframe(targetIframe);
+        targetIframe.onload = () => {
+          if (targetId === "hkit") {
+            targetIframe.style.height = "2000px";
+          } else {
+            resizeIframe(targetIframe);
+          }
+        };
       } else {
-        resizeIframe(targetIframe);
+        if (targetId === "hkit") {
+          targetIframe.style.height = "2000px";
+        } else {
+          resizeIframe(targetIframe);
+        }
       }
 
       if (updateHash) {
