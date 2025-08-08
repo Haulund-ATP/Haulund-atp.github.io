@@ -21,6 +21,7 @@
       justify-content: center;
       background: #eee;
       border-bottom: 1px solid #ccc;
+      flex-wrap: wrap;
     }
     .tab {
       padding: 1rem 2rem;
@@ -53,12 +54,17 @@
   <h1>Book møde med Thomas</h1>
   <div class="tabs">
     <button class="tab" data-target="atp">ATP Kalender</button>
+    <button class="tab" data-target="hkit">HK IT Tillidsrepræsentant</button> <!-- Flyttet op -->
     <button class="tab" data-target="privat">Privatkalender</button>
     <button class="tab" data-target="timewinder">TimeWinder Kalender</button>
   </div>
   <div class="content">
     <iframe id="atp" data-src="https://outlook.office.com/bookwithme/user/b875dde3a4364350bd9ac3e8e09fe2cc@ATP.DK/meetingtype/qqowKQltmUqVLcmz7X_c8w2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
+    
+    <iframe id="hkit" data-src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"></iframe> <!-- Flyttet op -->
+
     <iframe id="privat" data-src="https://outlook.office.com/bookwithme/user/98f27b3160b9462abfb0c2396e0bf74b@haulund-aadorf.dk/meetingtype/ZyexHvU_A0iWB4GergEWZA2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
+    
     <iframe id="timewinder" data-src="https://outlook.office.com/bookwithme/user/c9c7d22b5db04dce86119ce2f35d1154@timewinder.dk/meetingtype/mWsCXZztV0iSSFJJCE_Frg2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
   </div>
 
