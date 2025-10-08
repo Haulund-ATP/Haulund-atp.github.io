@@ -1,132 +1,90 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Book møde med Thomas</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-    }
-    h1 {
-      text-align: center;
-      padding: 1rem;
-      background-color: #003366;
-      color: white;
-    }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      background: #eee;
-      border-bottom: 1px solid #ccc;
-      flex-wrap: wrap;
-    }
-    .tab {
-      padding: 1rem 2rem;
-      cursor: pointer;
-      border: none;
-      background: none;
-      font-size: 1rem;
-    }
-    .tab.active {
-      background: white;
-      border-top: 3px solid #003366;
-      font-weight: bold;
-    }
-    .content {
-      padding: 1rem;
-      max-width: 1200px;
-      margin: auto;
-    }
-    iframe {
-      width: 100%;
-      border: none;
-      display: none;
-    }
-    iframe.active {
-      display: block;
-    }
+    body{font-family:Arial, sans-serif;margin:0;background:#f4f4f4}
+    h1{margin:0;padding:1rem;text-align:center;background:#003366;color:#fff}
+    .tabs{display:flex;justify-content:center;gap:1rem;background:#eee;border-bottom:1px solid #ccc;flex-wrap:wrap}
+    .tab{padding:1rem 2rem;cursor:pointer;border:none;background:none;font-size:1rem}
+    .tab.active{background:#fff;border-top:3px solid #003366;font-weight:bold}
+    .content{padding:1rem;max-width:1200px;margin:auto}
+    .panel{display:none}
+    .panel.active{display:block}
+    iframe{width:100%;border:0}
+    /* TR fast højde */
+    #hkit-iframe{height:2000px}
   </style>
 </head>
 <body>
   <h1>Book møde med Thomas</h1>
+
   <div class="tabs">
     <button class="tab" data-target="atp">ATP Kalender</button>
     <button class="tab" data-target="hkit">HK IT Tillidsrepræsentant</button>
     <button class="tab" data-target="privat">Privatkalender</button>
     <button class="tab" data-target="timewinder">TimeWinder Kalender</button>
   </div>
-  <div class="content">
-    <iframe id="atp" data-src="https://outlook.office.com/bookwithme/user/b875dde3a4364350bd9ac3e8e09fe2cc@ATP.DK/meetingtype/qqowKQltmUqVLcmz7X_c8w2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
-    
-    <iframe id="hkit" data-src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"></iframe>
 
-    <iframe id="privat" data-src="https://outlook.office.com/bookwithme/user/98f27b3160b9462abfb0c2396e0bf74b@haulund-aadorf.dk/meetingtype/ZyexHvU_A0iWB4GergEWZA2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
-    
-    <iframe id="timewinder" data-src="https://outlook.office.com/bookwithme/user/c9c7d22b5db04dce86119ce2f35d1154@timewinder.dk/meetingtype/mWsCXZztV0iSSFJJCE_Frg2?anonymous&ismsaljsauthenabled&ep=mlink"></iframe>
+  <div class="content">
+    <!-- ATP -->
+    <section id="atp" class="panel">
+      <iframe id="atp-iframe"
+        src="https://outlook.office.com/book/BooktimewithThomas@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
+        loading="lazy"></iframe>
+    </section>
+
+    <!-- TR (fast 2000px) -->
+    <section id="hkit" class="panel">
+      <iframe id="hkit-iframe"
+        src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
+        loading="lazy"></iframe>
+    </section>
+
+    <!-- Privat (NY Bookings-URL) -->
+    <section id="privat" class="panel">
+      <iframe id="privat-iframe"
+        src="https://outlook.office.com/book/Thomasmeetingbook@haulund-aadorf.dk/s/7cbAjBOZzkWvAoKaSq11eQ2?ismsaljsauthenabled"
+        loading="lazy"></iframe>
+    </section>
+
+    <!-- TimeWinder (NY Bookings-URL) -->
+    <section id="timewinder" class="panel">
+      <iframe id="timewinder-iframe"
+        src="https://outlook.office.com/book/BooktidmedThomasfraTimeWinderIT@timewinder.dk/s/xatZVzwBG06VPPgtuzrBZw2?ismsaljsauthenabled"
+        loading="lazy"></iframe>
+    </section>
   </div>
 
   <script>
     const tabs = document.querySelectorAll('.tab');
-    const iframes = document.querySelectorAll('iframe');
+    const panels = document.querySelectorAll('.panel');
 
     function resizeIframe(iframe) {
       try {
-        const contentHeight = iframe.contentWindow.document.body.scrollHeight;
-        iframe.style.height = contentHeight + 'px';
+        const h = iframe.contentWindow.document.body.scrollHeight;
+        iframe.style.height = (h || 1200) + 'px';
       } catch (e) {
-        iframe.style.height = '1200px'; // fallback for ikke-TR
+        iframe.style.height = '1200px'; // cross-origin fallback
       }
     }
 
-    function activateTab(tab, updateHash = true) {
-      tabs.forEach(t => t.classList.remove('active'));
-      iframes.forEach(iframe => iframe.classList.remove('active'));
-
-      tab.classList.add('active');
-      const targetId = tab.dataset.target;
-      const targetIframe = document.getElementById(targetId);
-      targetIframe.classList.add('active');
-
-      if (!targetIframe.src) {
-        targetIframe.src = targetIframe.dataset.src;
-        targetIframe.onload = () => {
-          if (targetId === "hkit") {
-            targetIframe.style.height = "2000px";
-          } else {
-            resizeIframe(targetIframe);
-          }
-        };
+    function activate(id){
+      tabs.forEach(t=>t.classList.toggle('active', t.dataset.target===id));
+      panels.forEach(p=>p.classList.toggle('active', p.id===id));
+      const iframe = document.querySelector(`#${id} iframe`);
+      if (!iframe) return;
+      if (id === 'hkit') {
+        iframe.style.height = '2000px'; // TR fast højde
       } else {
-        if (targetId === "hkit") {
-          targetIframe.style.height = "2000px";
-        } else {
-          resizeIframe(targetIframe);
-        }
+        resizeIframe(iframe);
       }
-
-      if (updateHash) {
-        history.replaceState(null, null, `#${targetId}`);
-      }
+      history.replaceState(null,null,`#${id}`);
     }
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => activateTab(tab));
-    });
-
-    // Auto-activate tab based on hash or default to first tab
-    window.addEventListener('DOMContentLoaded', () => {
-      const hash = window.location.hash.substring(1);
-      const tabToActivate = hash
-        ? document.querySelector(`.tab[data-target="${hash}"]`)
-        : tabs[0];
-
-      if (tabToActivate) {
-        activateTab(tabToActivate, false);
-      }
-    });
+    tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.target)));
+    window.addEventListener('DOMContentLoaded',()=>activate(location.hash.slice(1) || 'atp'));
   </script>
 </body>
 </html>
