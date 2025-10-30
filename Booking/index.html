@@ -4,17 +4,54 @@
   <meta charset="UTF-8" />
   <title>Book møde med Thomas</title>
   <style>
-    body{font-family:Arial, sans-serif;margin:0;background:#f4f4f4}
-    h1{margin:0;padding:1rem;text-align:center;background:#003366;color:#fff}
-    .tabs{display:flex;justify-content:center;gap:1rem;background:#eee;border-bottom:1px solid #ccc;flex-wrap:wrap}
-    .tab{padding:1rem 2rem;cursor:pointer;border:none;background:none;font-size:1rem}
-    .tab.active{background:#fff;border-top:3px solid #003366;font-weight:bold}
-    .content{padding:1rem;max-width:1200px;margin:auto}
-    .panel{display:none}
-    .panel.active{display:block}
-    iframe{width:100%;border:0}
-    /* TR fast højde */
-    #hkit-iframe{height:2000px}
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+    h1 {
+      margin: 0;
+      padding: 1rem;
+      text-align: center;
+      background: #003366;
+      color: #fff;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      background: #eee;
+      border-bottom: 1px solid #ccc;
+      flex-wrap: wrap;
+    }
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 1rem;
+    }
+    .tab.active {
+      background: #fff;
+      border-top: 3px solid #003366;
+      font-weight: bold;
+    }
+    .content {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .panel {
+      display: none;
+    }
+    .panel.active {
+      display: block;
+    }
+    iframe {
+      width: 100%;
+      border: none;
+      min-height: 2000px; /* fast minimumhøjde */
+    }
   </style>
 </head>
 <body>
@@ -30,30 +67,38 @@
   <div class="content">
     <!-- ATP -->
     <section id="atp" class="panel">
-      <iframe id="atp-iframe"
+      <iframe
+        id="atp-iframe"
         src="https://outlook.office.com/book/BooktimewithThomas@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
-        loading="lazy"></iframe>
+        loading="lazy">
+      </iframe>
     </section>
 
-    <!-- TR (fast 2000px) -->
+    <!-- TR -->
     <section id="hkit" class="panel">
-      <iframe id="hkit-iframe"
+      <iframe
+        id="hkit-iframe"
         src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
-        loading="lazy"></iframe>
+        loading="lazy">
+      </iframe>
     </section>
 
-    <!-- Privat (NY Bookings-URL) -->
+    <!-- Privat -->
     <section id="privat" class="panel">
-      <iframe id="privat-iframe"
+      <iframe
+        id="privat-iframe"
         src="https://outlook.office.com/book/Thomasmeetingbook@haulund-aadorf.dk/s/7cbAjBOZzkWvAoKaSq11eQ2?ismsaljsauthenabled"
-        loading="lazy"></iframe>
+        loading="lazy">
+      </iframe>
     </section>
 
-    <!-- TimeWinder (NY Bookings-URL) -->
+    <!-- TimeWinder -->
     <section id="timewinder" class="panel">
-      <iframe id="timewinder-iframe"
+      <iframe
+        id="timewinder-iframe"
         src="https://outlook.office.com/book/BooktidmedThomasfraTimeWinderIT@timewinder.dk/s/xatZVzwBG06VPPgtuzrBZw2?ismsaljsauthenabled"
-        loading="lazy"></iframe>
+        loading="lazy">
+      </iframe>
     </section>
   </div>
 
@@ -63,28 +108,31 @@
 
     function resizeIframe(iframe) {
       try {
-        const h = iframe.contentWindow.document.body.scrollHeight;
-        iframe.style.height = (h || 1200) + 'px';
-      } catch (e) {
-        iframe.style.height = '1200px'; // cross-origin fallback
+        const newHeight = iframe.contentWindow.document.body.scrollHeight;
+        if (newHeight > 2000) {
+          iframe.style.height = newHeight + 'px';
+        } else {
+          iframe.style.height = '2000px';
+        }
+      } catch {
+        iframe.style.height = '2000px';
       }
     }
 
-    function activate(id){
-      tabs.forEach(t=>t.classList.toggle('active', t.dataset.target===id));
-      panels.forEach(p=>p.classList.toggle('active', p.id===id));
+    function activate(id) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.target === id));
+      panels.forEach(p => p.classList.toggle('active', p.id === id));
       const iframe = document.querySelector(`#${id} iframe`);
-      if (!iframe) return;
-      if (id === 'hkit') {
-        iframe.style.height = '2000px'; // TR fast højde
-      } else {
-        resizeIframe(iframe);
-      }
-      history.replaceState(null,null,`#${id}`);
+      if (iframe) resizeIframe(iframe);
+      history.replaceState(null, null, `#${id}`);
     }
 
-    tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.target)));
-    window.addEventListener('DOMContentLoaded',()=>activate(location.hash.slice(1) || 'atp'));
+    tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.target)));
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = location.hash.slice(1);
+      activate(hash || 'atp');
+    });
   </script>
 </body>
 </html>
