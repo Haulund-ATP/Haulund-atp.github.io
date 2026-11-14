@@ -1,0 +1,5 @@
+# GitHub Pages: backend og opsætning skal ikke publiceres som en del af sitet.
+exclude:
+  - api
+  - infra
+  - CONTRIBUTING.md
