@@ -2,18 +2,29 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Book møde med Thomas</title>
   <style>
+    :root {
+      --brand: #003366;
+      --brand-soft: #e6eef6;
+      --line: #ccc;
+      --muted: #555;
+      --ok: #1e6b35;
+      --err: #a12020;
+    }
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       background: #f4f4f4;
+      color: #222;
     }
     h1 {
       margin: 0;
       padding: 1rem;
       text-align: center;
-      background: #003366;
+      background: var(--brand);
       color: #fff;
     }
     .tabs {
@@ -21,7 +32,7 @@
       justify-content: center;
       gap: 1rem;
       background: #eee;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid var(--line);
       flex-wrap: wrap;
     }
     .tab {
@@ -33,43 +44,185 @@
     }
     .tab.active {
       background: #fff;
-      border-top: 3px solid #003366;
+      border-top: 3px solid var(--brand);
       font-weight: bold;
     }
+    .tab[hidden] { display: none; }
     .content {
       padding: 1rem;
       max-width: 1200px;
       margin: auto;
     }
-    .panel {
-      display: none;
-    }
-    .panel.active {
-      display: block;
-    }
+    .panel { display: none; }
+    .panel.active { display: block; }
     iframe {
       width: 100%;
       border: none;
       min-height: 2000px; /* fast minimumhøjde */
     }
+
+    /* ---------- samlet booking ---------- */
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 { margin: 0 0 .75rem; font-size: 1.15rem; color: var(--brand); }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: .75rem;
+    }
+    .choice {
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: .9rem 1rem;
+      cursor: pointer;
+      font: inherit;
+    }
+    .choice:hover, .choice:focus-visible { border-color: var(--brand); outline: none; }
+    .choice.selected { border: 2px solid var(--brand); background: var(--brand-soft); }
+    .choice .tag { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    .choice .name { font-weight: bold; margin: .2rem 0; }
+    .choice .meta { font-size: .9rem; color: var(--muted); }
+    .days {
+      display: flex;
+      gap: .5rem;
+      overflow-x: auto;
+      padding-bottom: .5rem;
+    }
+    .day {
+      flex: 0 0 auto;
+      min-width: 84px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: .5rem;
+      cursor: pointer;
+      font: inherit;
+    }
+    .day small { display: block; color: var(--muted); }
+    .day.selected { border: 2px solid var(--brand); background: var(--brand-soft); }
+    .day:disabled { opacity: .4; cursor: default; }
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: .5rem;
+      margin-top: 1rem;
+    }
+    .slot {
+      border: 1px solid var(--brand);
+      color: var(--brand);
+      background: #fff;
+      border-radius: 6px;
+      padding: .6rem;
+      cursor: pointer;
+      font: inherit;
+      font-weight: bold;
+    }
+    .slot.selected { background: var(--brand); color: #fff; }
+    .nav { display: flex; justify-content: space-between; margin-top: .75rem; }
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: .7rem 1.2rem;
+      font: inherit;
+      cursor: pointer;
+      background: var(--brand);
+      color: #fff;
+    }
+    .btn.secondary { background: #ddd; color: #222; }
+    .btn:disabled { opacity: .5; cursor: default; }
+    form label { display: block; margin: .6rem 0 .2rem; font-weight: bold; }
+    form input, form textarea {
+      width: 100%;
+      padding: .6rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: inherit;
+    }
+    form textarea { min-height: 90px; }
+    .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+    .msg { padding: .8rem 1rem; border-radius: 6px; margin-top: 1rem; }
+    .msg.ok { background: #e6f4ea; color: var(--ok); }
+    .msg.err { background: #fbeaea; color: var(--err); }
+    .summary { font-weight: bold; margin: .25rem 0 1rem; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
   <h1>Book møde med Thomas</h1>
 
   <div class="tabs">
+    <button class="tab" data-target="samlet">Book tid</button>
     <button class="tab" data-target="atp">ATP Kalender</button>
     <button class="tab" data-target="hkit">HK IT Tillidsrepræsentant</button>
-    <button class="tab" data-target="privat">Privatkalender</button>
-    <button class="tab" data-target="timewinder">TimeWinder Kalender</button>
+    <button class="tab" data-target="privat" hidden>Privatkalender</button>
+    <button class="tab" data-target="timewinder" hidden>TimeWinder Kalender</button>
   </div>
 
   <div class="content">
+    <!-- Samlet booking på tværs af kalendere -->
+    <section id="samlet" class="panel">
+      <div class="card" id="step-type">
+        <h2>1. Hvad drejer mødet sig om?</h2>
+        <p class="muted" id="type-status">Henter mødetyper…</p>
+        <div class="grid" id="type-list"></div>
+      </div>
+
+      <div class="card" id="step-time" hidden>
+        <h2>2. Vælg tidspunkt</h2>
+        <p class="muted" id="time-status"></p>
+        <div class="days" id="day-list"></div>
+        <div class="slots" id="slot-list"></div>
+        <div class="nav">
+          <button class="btn secondary" id="prev-days" type="button">← Tidligere</button>
+          <button class="btn secondary" id="next-days" type="button">Senere →</button>
+        </div>
+      </div>
+
+      <div class="card" id="step-form" hidden>
+        <h2>3. Dine oplysninger</h2>
+        <p class="summary" id="summary"></p>
+        <form id="book-form" novalidate>
+          <label for="f-name">Navn</label>
+          <input id="f-name" name="name" autocomplete="name" required maxlength="100" />
+          <label for="f-email">E-mail</label>
+          <input id="f-email" name="email" type="email" autocomplete="email" required maxlength="200" />
+          <label for="f-phone">Telefon (valgfri)</label>
+          <input id="f-phone" name="phone" type="tel" autocomplete="tel" maxlength="40" />
+          <label for="f-notes">Hvad vil du gerne tale om? (valgfri)</label>
+          <textarea id="f-notes" name="notes" maxlength="2000"></textarea>
+          <div class="hp" aria-hidden="true">
+            <label for="f-website">Lad dette felt være tomt</label>
+            <input id="f-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <p style="margin-top:1rem">
+            <button class="btn" id="submit" type="submit">Book mødet</button>
+          </p>
+        </form>
+        <div id="form-msg"></div>
+      </div>
+
+      <div class="card" id="step-done" hidden>
+        <h2>Tak – mødet er booket</h2>
+        <p id="done-text"></p>
+        <p class="muted">Du modtager en bekræftelse på e-mail.</p>
+        <button class="btn secondary" id="again" type="button">Book et nyt møde</button>
+      </div>
+    </section>
+
     <!-- ATP -->
     <section id="atp" class="panel">
       <iframe
         id="atp-iframe"
-        src="https://outlook.office.com/book/BooktimewithThomas@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
+        data-src="https://outlook.office.com/book/BooktimewithThomas@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
         loading="lazy">
       </iframe>
     </section>
@@ -78,60 +231,244 @@
     <section id="hkit" class="panel">
       <iframe
         id="hkit-iframe"
-        src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
+        data-src="https://outlook.office.com/book/BooktidmedHKITtillidsreprsentant@ATPdk.onmicrosoft.com/?ismsaljsauthenabled"
         loading="lazy">
       </iframe>
     </section>
 
-    <!-- Privat -->
+    <!-- Privat (reserve hvis den samlede booking ikke svarer) -->
     <section id="privat" class="panel">
       <iframe
         id="privat-iframe"
-        src="https://outlook.office.com/book/Thomasmeetingbook@haulund-aadorf.dk/s/7cbAjBOZzkWvAoKaSq11eQ2?ismsaljsauthenabled"
+        data-src="https://outlook.office.com/book/Thomasmeetingbook@haulund-aadorf.dk/s/7cbAjBOZzkWvAoKaSq11eQ2?ismsaljsauthenabled"
         loading="lazy">
       </iframe>
     </section>
 
-    <!-- TimeWinder -->
+    <!-- TimeWinder (reserve hvis den samlede booking ikke svarer) -->
     <section id="timewinder" class="panel">
       <iframe
         id="timewinder-iframe"
-        src="https://outlook.office.com/book/BooktidmedThomasfraTimeWinderIT@timewinder.dk/s/xatZVzwBG06VPPgtuzrBZw2?ismsaljsauthenabled"
+        data-src="https://outlook.office.com/book/BooktidmedThomasfraTimeWinderIT@timewinder.dk/s/xatZVzwBG06VPPgtuzrBZw2?ismsaljsauthenabled"
         loading="lazy">
       </iframe>
     </section>
   </div>
 
   <script>
+    // Backend: Azure Function (se api/ og infra/ i repoet). ?api=... kan bruges til test lokalt.
+    const API_BASE = new URLSearchParams(location.search).get('api') || 'https://haulund-booking.azurewebsites.net/api';
+    const PAGE_DAYS = 14;
+
+    // ---------- faner ----------
     const tabs = document.querySelectorAll('.tab');
     const panels = document.querySelectorAll('.panel');
 
-    function resizeIframe(iframe) {
-      try {
-        const newHeight = iframe.contentWindow.document.body.scrollHeight;
-        if (newHeight > 2000) {
-          iframe.style.height = newHeight + 'px';
-        } else {
-          iframe.style.height = '2000px';
-        }
-      } catch {
-        iframe.style.height = '2000px';
-      }
-    }
-
     function activate(id) {
+      if (!document.getElementById(id)) id = 'samlet';
       tabs.forEach(t => t.classList.toggle('active', t.dataset.target === id));
       panels.forEach(p => p.classList.toggle('active', p.id === id));
       const iframe = document.querySelector(`#${id} iframe`);
-      if (iframe) resizeIframe(iframe);
-      history.replaceState(null, null, `#${id}`);
+      if (iframe && !iframe.src) iframe.src = iframe.dataset.src;
+      history.replaceState(null, '', `#${id}`);
     }
-
     tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.target)));
 
+    function showFallbackTabs() {
+      document.querySelectorAll('.tab[data-target="privat"], .tab[data-target="timewinder"]')
+        .forEach(t => t.hidden = false);
+    }
+
+    // ---------- hjælpere ----------
+    const $ = id => document.getElementById(id);
+    const el = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    };
+    const TZ = 'Europe/Copenhagen';
+    const fmtTime = iso => new Intl.DateTimeFormat('da-DK', { hour: '2-digit', minute: '2-digit', timeZone: TZ }).format(new Date(iso));
+    const fmtDay = (date, opts) => new Intl.DateTimeFormat('da-DK', { timeZone: TZ, ...opts }).format(new Date(date + 'T12:00:00'));
+    const addDays = (date, n) => {
+      const d = new Date(date + 'T12:00:00Z');
+      d.setUTCDate(d.getUTCDate() + n);
+      return d.toISOString().slice(0, 10);
+    };
+    const todayLocal = () => new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date());
+
+    async function api(path, options) {
+      const res = await fetch(API_BASE + path, options);
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(body.error || `Fejl ${res.status}`), { status: res.status });
+      return body;
+    }
+
+    // ---------- tilstand ----------
+    const state = { service: null, from: todayLocal(), days: [], day: null, slot: null };
+
+    // ---------- trin 1: mødetype ----------
+    async function loadCatalog() {
+      const list = $('type-list');
+      try {
+        const { services } = await api('/catalog');
+        $('type-status').textContent = 'Vælg den slags møde du vil booke. Ledige tider tager højde for alle Thomas\' kalendere.';
+        services.forEach(s => {
+          const b = el('button', 'choice');
+          b.type = 'button';
+          b.append(el('div', 'tag', s.typeLabel), el('div', 'name', s.name),
+            el('div', 'meta', `${s.durationMinutes} min${s.online ? ' · Teams' : ''}`));
+          if (s.description) b.append(el('div', 'meta', s.description));
+          b.addEventListener('click', () => chooseService(s, b));
+          list.append(b);
+        });
+      } catch (err) {
+        console.error(err);
+        $('type-status').textContent = 'Den samlede booking er ikke tilgængelig lige nu. Brug fanerne ovenfor til at booke direkte.';
+        showFallbackTabs();
+      }
+      // ATP-mødetyper bookes stadig via ATP's egne sider
+      [['ATP', 'Møde med Thomas i ATP', 'atp'], ['HK IT', 'Tillidsrepræsentant', 'hkit']].forEach(([tag, name, tab]) => {
+        const b = el('button', 'choice');
+        b.type = 'button';
+        b.append(el('div', 'tag', tag), el('div', 'name', name), el('div', 'meta', 'Åbner ATP\'s bookingside'));
+        b.addEventListener('click', () => activate(tab));
+        list.append(b);
+      });
+    }
+
+    function chooseService(s, button) {
+      document.querySelectorAll('#type-list .choice').forEach(c => c.classList.toggle('selected', c === button));
+      state.service = s;
+      state.from = todayLocal();
+      $('step-time').hidden = false;
+      $('step-form').hidden = true;
+      $('step-done').hidden = true;
+      loadSlots();
+      $('step-time').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ---------- trin 2: tidspunkt ----------
+    async function loadSlots() {
+      const dayList = $('day-list');
+      const slotList = $('slot-list');
+      dayList.replaceChildren();
+      slotList.replaceChildren();
+      $('time-status').textContent = 'Finder ledige tider…';
+      $('prev-days').disabled = state.from <= todayLocal();
+      try {
+        const res = await api(`/slots?service=${encodeURIComponent(state.service.id)}&from=${state.from}&days=${PAGE_DAYS}`);
+        const byDate = new Map(res.days.map(d => [d.date, d.slots]));
+        state.days = byDate;
+        let first = null;
+        for (let i = 0; i < PAGE_DAYS; i++) {
+          const date = addDays(state.from, i);
+          const slots = byDate.get(date) || [];
+          const b = el('button', 'day');
+          b.type = 'button';
+          b.append(el('small', null, fmtDay(date, { weekday: 'short' })), fmtDay(date, { day: 'numeric', month: 'short' }));
+          b.disabled = slots.length === 0;
+          b.dataset.date = date;
+          b.addEventListener('click', () => chooseDay(date));
+          dayList.append(b);
+          if (!first && slots.length) first = date;
+        }
+        if (first) {
+          $('time-status').textContent = `Tiderne vises i dansk tid. Mødet varer ${res.durationMinutes} minutter.`;
+          chooseDay(first);
+        } else {
+          $('time-status').textContent = 'Ingen ledige tider i denne periode – prøv "Senere".';
+        }
+      } catch (err) {
+        $('time-status').textContent = err.message;
+      }
+    }
+
+    function chooseDay(date) {
+      state.day = date;
+      document.querySelectorAll('#day-list .day').forEach(d => d.classList.toggle('selected', d.dataset.date === date));
+      const slotList = $('slot-list');
+      slotList.replaceChildren();
+      (state.days.get(date) || []).forEach(iso => {
+        const b = el('button', 'slot', fmtTime(iso));
+        b.type = 'button';
+        b.addEventListener('click', () => chooseSlot(iso, b));
+        slotList.append(b);
+      });
+    }
+
+    function chooseSlot(iso, button) {
+      document.querySelectorAll('#slot-list .slot').forEach(s => s.classList.toggle('selected', s === button));
+      state.slot = iso;
+      $('summary').textContent = `${state.service.typeLabel}: ${state.service.name} – ` +
+        `${fmtDay(state.day, { weekday: 'long', day: 'numeric', month: 'long' })} kl. ${fmtTime(iso)}`;
+      $('form-msg').replaceChildren();
+      $('step-form').hidden = false;
+      $('step-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    $('prev-days').addEventListener('click', () => {
+      const prev = addDays(state.from, -PAGE_DAYS);
+      state.from = prev < todayLocal() ? todayLocal() : prev;
+      loadSlots();
+    });
+    $('next-days').addEventListener('click', () => {
+      state.from = addDays(state.from, PAGE_DAYS);
+      loadSlots();
+    });
+
+    // ---------- trin 3: formular ----------
+    $('book-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const f = e.target;
+      const msg = $('form-msg');
+      msg.replaceChildren();
+      if (!f.name.value.trim() || !f.email.checkValidity() || !f.email.value) {
+        msg.append(el('div', 'msg err', 'Udfyld navn og en gyldig e-mail.'));
+        return;
+      }
+      $('submit').disabled = true;
+      try {
+        const res = await api('/book', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service: state.service.id,
+            start: state.slot,
+            name: f.name.value,
+            email: f.email.value,
+            phone: f.phone.value,
+            notes: f.notes.value,
+            website: f.website.value,
+          }),
+        });
+        $('done-text').textContent = $('summary').textContent + '.';
+        if (res.joinUrl) {
+          const a = el('a', null, 'Teams-link');
+          a.href = res.joinUrl;
+          $('done-text').append(' ', a);
+        }
+        ['step-type', 'step-time', 'step-form'].forEach(id => $(id).hidden = true);
+        $('step-done').hidden = false;
+        f.reset();
+      } catch (err) {
+        msg.append(el('div', 'msg err', err.message));
+        if (err.status === 409) loadSlots();
+      } finally {
+        $('submit').disabled = false;
+      }
+    });
+
+    $('again').addEventListener('click', () => {
+      $('step-done').hidden = true;
+      $('step-type').hidden = false;
+      document.querySelectorAll('#type-list .choice').forEach(c => c.classList.remove('selected'));
+      $('step-type').scrollIntoView({ behavior: 'smooth' });
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
-      const hash = location.hash.slice(1);
-      activate(hash || 'atp');
+      activate(location.hash.slice(1) || 'samlet');
+      loadCatalog();
     });
   </script>
 </body>
